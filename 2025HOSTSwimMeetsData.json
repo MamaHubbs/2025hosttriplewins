@@ -1,0 +1,176 @@
+[
+    {
+        "date": "Jun 11, 2025",
+        "team1": "Hampton Oaks",
+        "team2": "Lake Wilderness",
+        "score1": 385,
+        "score2": 163,
+        "winner": "Hampton Oaks",
+        "homeTeam": "Hampton Oaks",
+        "awayTeam": "Lake Wilderness",
+        "isExhibition": true,
+        "tripleWinners": [
+            {
+                "name": "Woodruff, Ally",
+                "gender": "Female",
+                "age": 12,
+                "team": "Hampton Oaks",
+                "events": [
+                    {
+                        "distance": "100m",
+                        "type": "Girls 12 & Under Freestyle",
+                        "time": "1:15.71"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Girls 11-12 Freestyle",
+                        "time": "33.15"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Girls 11-12 Breaststroke",
+                        "time": "49.97"
+                    }
+                ]
+            },
+            {
+                "name": "Green, Christian",
+                "gender": "Male",
+                "age": 12,
+                "team": "Hampton Oaks",
+                "events": [
+                    {
+                        "distance": "100m",
+                        "type": "Boys 12 & Under Freestyle",
+                        "time": "1:13.25"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Boys 11-12 Butterfly",
+                        "time": "37.49"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Boys 11-12 Freestyle",
+                        "time": "41.38"
+                    }
+                ]
+            },
+            {
+                "name": "Woodruff, Kyra",
+                "gender": "Female",
+                "age": 16,
+                "team": "Hampton Oaks",
+                "events": [
+                    {
+                        "distance": "100m",
+                        "type": "Girls 13-18 Freestyle",
+                        "time": "1:10.84"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Girls 15-18 Butterfly",
+                        "time": "37.06"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Girls 15-18 Freestyle",
+                        "time": "36.18"
+                    }
+                ]
+            },
+            {
+                "name": "Jackson, Austin",
+                "gender": "Male",
+                "age": 8,
+                "team": "Hampton Oaks",
+                "events": [
+                    {
+                        "distance": "25m",
+                        "type": "Boys 7-8 Freestyle",
+                        "time": "21.69"
+                    },
+                    {
+                        "distance": "25m",
+                        "type": "Boys 7-8 Butterfly",
+                        "time": "37.77"
+                    },
+                    {
+                        "distance": "25m",
+                        "type": "Boys 7-8 Backstroke",
+                        "time": "29.97"
+                    }
+                ]
+            },
+            {
+                "name": "Woodruff, Owen",
+                "gender": "Male",
+                "age": 9,
+                "team": "Hampton Oaks",
+                "events": [
+                    {
+                        "distance": "25m",
+                        "type": "Boys 9-10 Freestyle",
+                        "time": "19.24"
+                    },
+                    {
+                        "distance": "25m",
+                        "type": "Boys 9-10 Butterfly",
+                        "time": "23.66"
+                    },
+                    {
+                        "distance": "25m",
+                        "type": "Boys 9-10 Backstroke",
+                        "time": "23.15"
+                    }
+                ]
+            },
+            {
+                "name": "Woodruff, Mia",
+                "gender": "Female",
+                "age": 14,
+                "team": "Hampton Oaks",
+                "events": [
+                    {
+                        "distance": "50m",
+                        "type": "Girls 13-14 Freestyle",
+                        "time": "31.73"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Girls 13-14 Backstroke",
+                        "time": "36.40"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Girls 13-14 Butterfly",
+                        "time": "40.71"
+                    }
+                ]
+            },
+            {
+                "name": "Hitt, Kayden",
+                "gender": "Male",
+                "age": 14,
+                "team": "Lake Wilderness",
+                "events": [
+                    {
+                        "distance": "100m",
+                        "type": "Boys 13-18 Freestyle",
+                        "time": "1:02.78"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Boys 13-14 Butterfly",
+                        "time": "30.68"
+                    },
+                    {
+                        "distance": "50m",
+                        "type": "Boys 13-14 Backstroke",
+                        "time": "31.69"
+                    }
+                ]
+            }
+        ]
+    }
+]

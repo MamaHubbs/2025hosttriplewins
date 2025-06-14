@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 Hampton Oaks Hurricanes Triple Winners</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            font-size: 0.85em;
+        }
+        .container {
+            max-width: 950px;
+            margin: auto;
+            background: none;
+            padding: 25px;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        /* Filter controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            font-size: 0.8em;
+        }
+        .controls div {
+            flex-shrink: 0;
+            min-width: 200px; /* Adjusted width for better layout */
+            text-align: center;
+        }
+        .controls label {
+            font-weight: bold;
+            margin-right: 5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .controls select,
+        .controls input[type="search"] { /* Style input to match select */
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.8em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Report table styles */
+        .triple-winner-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            table-layout: fixed; /* Helps with column width control */
+        }
+        .triple-winner-table th,
+        .triple-winner-table td {
+            border: 1px solid #ddd;
+            padding: 3px 10px;
+            text-align: left;
+            font-size: 0.75em;
+            word-wrap: break-word; /* Prevents long text from breaking layout */
+        }
+        /* MODIFICATION: Adjust column widths */
+        .triple-winner-table th:nth-child(1), /* Athlete Column */
+        .triple-winner-table td:nth-child(1) {
+            width: 18%;
+        }
+        .triple-winner-table th:nth-child(2), /* Age Column */
+        .triple-winner-table td:nth-child(2) {
+            width: 4%;
+        }
+        .triple-winner-table th:nth-child(3), /* Distance Column */
+        .triple-winner-table td:nth-child(3) {
+            text-align: right;
+            width: 6%;
+        }
+        .triple-winner-table th:nth-child(4), /* Event Type Column */
+        .triple-winner-table td:nth-child(4) {
+            width: 19%; /* Tightened event column */
+        }
+        .triple-winner-table th:nth-child(5), /* Time Column */
+        .triple-winner-table td:nth-child(5) {
+            width: 7%;
+        }
+        .triple-winner-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #555;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            white-space: nowrap;
+        }
+        .triple-winner-table th.sortable-header {
+            cursor: pointer;
+        }
+        .triple-winner-table th .sort-status-text {
+            font-size: 0.8em;
+            font-weight: normal;
+            color: #888;
+            margin-left: 5px;
+        }
+        .alternate-row-group {
+            background-color: #f8f8f4;
+        }
+        
+        /* Message for no data */
+        .no-report-message {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin-top: 40px;
+            font-size: 0.85em;
+        }
+
+        /* --- Print-specific styles --- */
+        @media print {
+            body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+                font-size: 0.7em;
+            }
+            .container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 10px;
+                margin: 0;
+                max-width: none;
+            }
+            .controls { /* Hide filters when printing */
+                display: none !important;
+            }
+            h1 {
+                font-size: 1.2em !important;
+            }
+            .triple-winner-table {
+                page-break-inside: auto;
+                page-break-after: auto;
+            }
+            .triple-winner-table th,
+            .triple-winner-table td {
+                border-color: #999 !important;
+                font-size: 0.65em !important;
+                padding: 2px 5px !important;
+            }
+            .alternate-row-group {
+                background-color: #f2f2f2 !important;
+            }
+            .triple-winner-table th .sort-status-text { /* Hide the indicator text in print */
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2025 Hampton Oaks Hurricanes Triple Winners</h1>
+
+        <div class="controls">
+            <div>
+                <label for="meetNameFilter">Filter by Meet:</label>
+                <select id="meetNameFilter"></select>
+            </div>
+            <div>
+                <label for="athleteSearch">Search by Athlete:</label>
+                <input type="search" id="athleteSearch" placeholder="Enter athlete name...">
+            </div>
+        </div>
+
+        <div id="reportOutput">
+            <p class="no-report-message">Select a filter or search for an athlete to view results.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const TEAM_NAME = "Hampton Oaks"; // Your team's exact name as it appears in the data
+
+        // --- ALL SWIM MEET DATA GOES HERE ---
+        const swimMeetsData = [];
+
+        // --- DOM Elements ---
+        const meetNameFilterSelect = document.getElementById('meetNameFilter');
+        const athleteSearchInput = document.getElementById('athleteSearch');
+        const reportOutputDiv = document.getElementById('reportOutput');
+
+        // --- Global State Variables ---
+        let currentSortColumn = 'name';
+        let currentSortOrder = 'asc';
+        let processedTripleWinners = []; // Holds all team winners, augmented with meet info
+
+        // --- Helper Functions ---
+
+        /**
+         * Processes the raw data once to create a flat list of all triple winners
+         * from the specified team, augmenting each with relevant meet info for easier filtering.
+         */
+        function processRawData() {
+            processedTripleWinners = [];
+            swimMeetsData.forEach(meet => {
+                const opponent = meet.team1 === TEAM_NAME ? meet.team2 : meet.team1;
+                let meetDisplayName = `${TEAM_NAME} vs ${opponent} - ${meet.date}`;
+                if (meet.isExhibition) {
+                    meetDisplayName += ' (EXH)';
+                }
+                const teamWinners = meet.tripleWinners.filter(swimmer => swimmer.team === TEAM_NAME);
+                teamWinners.forEach(swimmer => {
+                    processedTripleWinners.push({
+                        ...swimmer,
+                        meetDisplayName: meetDisplayName
+                    });
+                });
+            });
+        }
+        
+        /**
+         * Populates the meet filter dropdown based on available data.
+         */
+        function populateMeetFilter() {
+            const uniqueMeetNames = [...new Set(processedTripleWinners.map(s => s.meetDisplayName))].sort();
+            meetNameFilterSelect.innerHTML = '<option value="">All Meets</option>';
+            uniqueMeetNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                meetNameFilterSelect.appendChild(option);
+            });
+        }
+        
+        /**
+         * Sorts an array of swimmer objects based on the global sort criteria.
+         * @param {Array} swimmers - The array of swimmer objects to sort.
+         * @returns {Array} The sorted array of swimmers.
+         */
+        function sortSwimmers(swimmers) {
+            return swimmers.sort((a, b) => {
+                const valA = a[currentSortColumn];
+                const valB = b[currentSortColumn];
+                const comparison = typeof valA === 'string' ? valA.localeCompare(valB) : valA - valB;
+                return currentSortOrder === 'asc' ? comparison : -comparison;
+            });
+        }
+        
+        /**
+         * Generates and displays the Triple Winner report based on selected filters.
+         */
+        function generateReport() {
+            const selectedMeet = meetNameFilterSelect.value;
+            const searchTerm = athleteSearchInput.value.trim().toLowerCase();
+            
+            let filteredTripleWinners = processedTripleWinners;
+
+            // Apply meet filter if a meet is selected
+            if (selectedMeet) {
+                filteredTripleWinners = filteredTripleWinners.filter(swimmer => swimmer.meetDisplayName === selectedMeet);
+            }
+            // Apply athlete search filter if a term is entered
+            if (searchTerm) {
+                filteredTripleWinners = filteredTripleWinners.filter(swimmer => swimmer.name.toLowerCase().includes(searchTerm));
+            }
+            
+            // If no filters are active, show the initial message
+            if (!selectedMeet && !searchTerm) {
+                reportOutputDiv.innerHTML = '<p class="no-report-message">Select a meet or search for an athlete to view results.</p>';
+                return;
+            }
+
+            if (filteredTripleWinners.length === 0) {
+                reportOutputDiv.innerHTML = '<p class="no-report-message">No triple winners found for the selected criteria.</p>';
+            } else {
+                const sortedWinners = sortSwimmers(filteredTripleWinners);
+                
+                // MODIFICATION: Added 'Meet' to header
+                let reportHtml = `
+                    <table class="triple-winner-table">
+                        <thead>
+                            <tr>
+                                <th data-sort-by="name" class="sortable-header">Athlete Name <span class="sort-status-text"></span></th>
+                                <th data-sort-by="age" class="sortable-header">Age <span class="sort-status-text"></span></th>
+                                <th>Distance</th>
+                                <th>Event Type</th>
+                                <th>Time</th>
+                                <th>Meet</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                sortedWinners.forEach((swimmer, index) => {
+                    const rowGroupClass = (index % 2 === 1) ? 'alternate-row-group' : '';
+                    swimmer.events.forEach((event, eventIndex) => {
+                        const athleteNameCell = eventIndex === 0 ? `${swimmer.name} (${swimmer.gender.charAt(0)})` : '';
+                        const ageCell = eventIndex === 0 ? swimmer.age : '';
+                        // MODIFICATION: Added meet name cell, shown only on first row of group
+                        const meetCell = eventIndex === 0 ? swimmer.meetDisplayName : '';
+                        
+                        reportHtml += `
+                            <tr class="${rowGroupClass}">
+                                <td>${athleteNameCell}</td>
+                                <td>${ageCell}</td>
+                                <td>${event.distance}</td>
+                                <td>${event.type}</td>
+                                <td>${event.time}</td>
+                                <td>${meetCell}</td>
+                            </tr>`;
+                    });
+                });
+
+                reportHtml += `</tbody></table>`;
+                reportOutputDiv.innerHTML = reportHtml;
+            }
+            updateSortIndicators();
+        }
+
+        /**
+         * Updates the visual sort indicators (e.g., '(Asc)') in the table headers.
+         */
+        function updateSortIndicators() {
+            document.querySelectorAll('.sortable-header .sort-status-text').forEach(span => {
+                const header = span.parentElement;
+                const sortBy = header.dataset.sortBy;
+                span.textContent = (sortBy === currentSortColumn) ? (currentSortOrder === 'asc' ? '(Asc)' : '(Desc)') : '';
+            });
+        }
+        
+        // --- Event Listeners ---
+        meetNameFilterSelect.addEventListener('change', generateReport);
+        athleteSearchInput.addEventListener('input', generateReport); // 'input' fires on every keystroke
+
+        // Event listener for table header clicks for sorting
+        reportOutputDiv.addEventListener('click', function(event) {
+            const th = event.target.closest('.sortable-header');
+            if (th) {
+                const sortBy = th.dataset.sortBy;
+                if (currentSortColumn === sortBy) {
+                    currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortColumn = sortBy;
+                    currentSortOrder = 'asc';
+                }
+                generateReport();
+            }
+        });
+
+        // --- Initial Page Setup ---
+        function init() {
+            processRawData();
+            populateMeetFilter();
+            generateReport();
+        }
+        
+        init();
+
+        // --- Initial data load and setup ---
+        // This is the new part: fetch data from the JSON file
+        fetch('2025HOSTSwimMeetsData.json') // Updated this line to match your JSON filename
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} from ${response.url}`); // More detailed error
+                }
+                return response.json();
+            })
+            .then(data => {
+                swimMeetsData = data; // Assign the fetched data to the global variable
+                populateDropdownsInitial(); // Now initialize dropdowns and generate report with the loaded data
+            })
+            .catch(error => {
+                console.error('Error loading swim meets data:', error);
+                reportOutputDiv.innerHTML = '<p class="no-report-message" style="color: red;">Error loading data. Please ensure "2025HOSTSwimMeetsData.json" exists and is accessible in the same GitHub repository folder.</p>';
+            });
+
+    </script>
+</body>
+</html>
