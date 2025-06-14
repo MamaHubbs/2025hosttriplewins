@@ -185,7 +185,7 @@
         </div>
 
         <div id="reportOutput">
-            <p class="no-report-message">Select a filter or search for an athlete to view results.</p>
+            <p class="no-report-message">Loading data...</p>
         </div>
     </div>
 
@@ -194,7 +194,8 @@
         const TEAM_NAME = "Hampton Oaks"; // Your team's exact name as it appears in the data
 
         // --- ALL SWIM MEET DATA GOES HERE ---
-        const swimMeetsData = [];
+        // Change to 'let' so it can be reassigned after fetching
+        let swimMeetsData = []; 
 
         // --- DOM Elements ---
         const meetNameFilterSelect = document.getElementById('meetNameFilter');
@@ -220,6 +221,7 @@
                 if (meet.isExhibition) {
                     meetDisplayName += ' (EXH)';
                 }
+                // Filter only for the TEAM_NAME's triple winners
                 const teamWinners = meet.tripleWinners.filter(swimmer => swimmer.team === TEAM_NAME);
                 teamWinners.forEach(swimmer => {
                     processedTripleWinners.push({
@@ -234,6 +236,11 @@
          * Populates the meet filter dropdown based on available data.
          */
         function populateMeetFilter() {
+            // Ensure processedTripleWinners is populated before trying to get unique names
+            if (processedTripleWinners.length === 0) {
+                meetNameFilterSelect.innerHTML = '<option value="">No Meets Available</option>';
+                return;
+            }
             const uniqueMeetNames = [...new Set(processedTripleWinners.map(s => s.meetDisplayName))].sort();
             meetNameFilterSelect.innerHTML = '<option value="">All Meets</option>';
             uniqueMeetNames.forEach(name => {
@@ -253,7 +260,18 @@
             return swimmers.sort((a, b) => {
                 const valA = a[currentSortColumn];
                 const valB = b[currentSortColumn];
-                const comparison = typeof valA === 'string' ? valA.localeCompare(valB) : valA - valB;
+                let comparison = 0;
+
+                // Handle string comparisons (like name, which is default)
+                if (typeof valA === 'string' && typeof valB === 'string') {
+                    comparison = valA.localeCompare(valB);
+                } 
+                // Handle numeric comparisons (like age)
+                else if (typeof valA === 'number' && typeof valB === 'number') {
+                    comparison = valA - valB;
+                }
+                // Fallback for other types if necessary, though name/age cover current needs
+
                 return currentSortOrder === 'asc' ? comparison : -comparison;
             });
         }
@@ -265,7 +283,7 @@
             const selectedMeet = meetNameFilterSelect.value;
             const searchTerm = athleteSearchInput.value.trim().toLowerCase();
             
-            let filteredTripleWinners = processedTripleWinners;
+            let filteredTripleWinners = [...processedTripleWinners]; // Work with a copy
 
             // Apply meet filter if a meet is selected
             if (selectedMeet) {
@@ -276,9 +294,9 @@
                 filteredTripleWinners = filteredTripleWinners.filter(swimmer => swimmer.name.toLowerCase().includes(searchTerm));
             }
             
-            // If no filters are active, show the initial message
-            if (!selectedMeet && !searchTerm) {
-                reportOutputDiv.innerHTML = '<p class="no-report-message">Select a meet or search for an athlete to view results.</p>';
+            // If no filters are active AND no data is loaded, show the initial message
+            if (!selectedMeet && !searchTerm && swimMeetsData.length === 0) {
+                reportOutputDiv.innerHTML = '<p class="no-report-message">Loading data...</p>';
                 return;
             }
 
@@ -287,7 +305,6 @@
             } else {
                 const sortedWinners = sortSwimmers(filteredTripleWinners);
                 
-                // MODIFICATION: Added 'Meet' to header
                 let reportHtml = `
                     <table class="triple-winner-table">
                         <thead>
@@ -302,25 +319,60 @@
                         </thead>
                         <tbody>`;
 
-                sortedWinners.forEach((swimmer, index) => {
-                    const rowGroupClass = (index % 2 === 1) ? 'alternate-row-group' : '';
-                    swimmer.events.forEach((event, eventIndex) => {
-                        const athleteNameCell = eventIndex === 0 ? `${swimmer.name} (${swimmer.gender.charAt(0)})` : '';
-                        const ageCell = eventIndex === 0 ? swimmer.age : '';
-                        // MODIFICATION: Added meet name cell, shown only on first row of group
-                        const meetCell = eventIndex === 0 ? swimmer.meetDisplayName : '';
-                        
-                        reportHtml += `
-                            <tr class="${rowGroupClass}">
-                                <td>${athleteNameCell}</td>
-                                <td>${ageCell}</td>
-                                <td>${event.distance}</td>
-                                <td>${event.type}</td>
-                                <td>${event.time}</td>
-                                <td>${meetCell}</td>
-                            </tr>`;
-                    });
+                // To group rows by swimmer for alternating colors and correct rowspan behavior
+                // We need to iterate through unique swimmers first.
+                // Create a map to group events by swimmer name
+                const groupedSwimmers = new Map();
+                sortedWinners.forEach(swimmer => {
+                    if (!groupedSwimmers.has(swimmer.name)) {
+                        groupedSwimmers.set(swimmer.name, []);
+                    }
+                    groupedSwimmers.get(swimmer.name).push(swimmer);
                 });
+
+                let rowGroupIndex = 0;
+                for (const [swimmerName, swimmerEntries] of groupedSwimmers.entries()) {
+                    // For each unique swimmer, we iterate through their events
+                    // A single swimmer might appear multiple times in `swimmerEntries` if they had
+                    // triple wins in different meets. We need to handle this.
+                    // Let's assume for this report, we show all instances of a swimmer's triple wins.
+                    // The `processedTripleWinners` already flattens this, so we just need to render them.
+
+                    // To ensure proper grouping and alternate row colors when a swimmer has multiple triple wins entries,
+                    // we can assign a unique group index to each *distinct* triple winner entry (swimmer + meet)
+                    // and then apply the alternate-row-group class based on that.
+                    // However, your `processedTripleWinners` already flattens it, so `sortedWinners` is already
+                    // a list of each distinct triple win instance.
+
+                    // Let's refine the row grouping: each `swimmer` in `sortedWinners` represents
+                    // one instance of a triple win for an athlete at a specific meet.
+                    // We want to alternate colors for *each new triple winner instance*.
+
+                    const swimmerInstanceCount = swimmerEntries.length; // Number of events for this specific triple winner instance
+                    
+                    swimmerEntries.forEach((swimmer, instanceIndex) => {
+                        const rowGroupClass = (rowGroupIndex % 2 === 1) ? 'alternate-row-group' : '';
+                        rowGroupIndex++; // Increment for the next overall group
+
+                        swimmer.events.forEach((event, eventIndex) => {
+                            // Only show swimmer name, age, and meet for the first event row of each swimmer's triple win
+                            const athleteNameCell = eventIndex === 0 ? `${swimmer.name} (${swimmer.gender.charAt(0)})` : '';
+                            const ageCell = eventIndex === 0 ? swimmer.age : '';
+                            const meetCell = eventIndex === 0 ? swimmer.meetDisplayName : '';
+                            
+                            reportHtml += `
+                                <tr class="${rowGroupClass}">
+                                    <td>${athleteNameCell}</td>
+                                    <td>${ageCell}</td>
+                                    <td>${event.distance}</td>
+                                    <td>${event.type}</td>
+                                    <td>${event.time}</td>
+                                    <td>${meetCell}</td>
+                                </tr>`;
+                        });
+                    });
+                }
+
 
                 reportHtml += `</tbody></table>`;
                 reportOutputDiv.innerHTML = reportHtml;
@@ -358,31 +410,28 @@
             }
         });
 
-        // --- Initial Page Setup ---
-        function init() {
+        // --- Initial Page Setup (called AFTER data fetch) ---
+        function initializeReport() {
             processRawData();
             populateMeetFilter();
-            generateReport();
+            generateReport(); // Generate report initially with all data (or initial empty state if no data)
         }
         
-        init();
-
         // --- Initial data load and setup ---
-        // This is the new part: fetch data from the JSON file
-        fetch('2025HOSTSwimMeetsData.json') // Updated this line to match your JSON filename
+        fetch('2025HOSTSwimMeetsData.json') // Ensure this file exists in the same directory
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status} from ${response.url}`); // More detailed error
+                    throw new Error(`HTTP error! status: ${response.status} from ${response.url}`);
                 }
                 return response.json();
             })
             .then(data => {
-                swimMeetsData = data; // Assign the fetched data to the global variable
-                populateDropdownsInitial(); // Now initialize dropdowns and generate report with the loaded data
+                swimMeetsData = data; // Assign the fetched data to the global variable (now `let`)
+                initializeReport(); // Call the initializer ONLY after data is loaded
             })
             .catch(error => {
                 console.error('Error loading swim meets data:', error);
-                reportOutputDiv.innerHTML = '<p class="no-report-message" style="color: red;">Error loading data. Please ensure "2025HOSTSwimMeetsData.json" exists and is accessible in the same GitHub repository folder.</p>';
+                reportOutputDiv.innerHTML = '<p class="no-report-message" style="color: red;">Error loading data. Please ensure "2025HOSTSwimMeetsData.json" exists and is accessible.</p>';
             });
 
     </script>
